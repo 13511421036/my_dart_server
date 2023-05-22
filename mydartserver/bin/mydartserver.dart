@@ -50,7 +50,7 @@ final _router = shelf_router.Router()
     (request) => Response.ok(DateTime.now().toUtc().toIso8601String()),
   )
   ..get('/info.json', _infoHandler)
-  ..get('/sum/<a>/<b>', _sumHandler);
+  ..get('/sum/<a|[0-9]+>/<b|[0-9]+>', _sumHandler);
 
 Response _helloWorldHandler(Request request) => Response.ok('Hello, World!');
 
@@ -62,31 +62,16 @@ const _jsonHeaders = {
 };
 
 Response _sumHandler(Request request, String a, String b) {
-  // Check if 'a' and 'b' are integers.
-  final aNum = int.tryParse(a);
-  final bNum = int.tryParse(b);
-
-  if (aNum != null && bNum != null) {
-    // If 'a' and 'b' are both integers, return their sum.
-    return Response.ok(
-      _jsonEncode({'a': aNum, 'b': bNum, 'sum': aNum + bNum}),
-      headers: {
-        ..._jsonHeaders,
-        'Cache-Control': 'public, max-age=604800, immutable',
-      },
-    );
-  } else {
-    // Otherwise, return 'a' and 'b' as strings.
-    return Response.ok(
-      _jsonEncode({'a': a, 'b': b, 'result': '$a $b'}),
-      headers: {
-        ..._jsonHeaders,
-        'Cache-Control': 'public, max-age=604800, immutable',
-      },
-    );
-  }
+  final aNum = int.parse(a);
+  final bNum = int.parse(b);
+  return Response.ok(
+    _jsonEncode({'a': aNum, 'b': bNum, 'sum': aNum + bNum}),
+    headers: {
+      ..._jsonHeaders,
+      'Cache-Control': 'public, max-age=604800, immutable',
+    },
+  );
 }
-
 
 final _watch = Stopwatch();
 
