@@ -50,7 +50,34 @@ final _router = shelf_router.Router()
     (request) => Response.ok(DateTime.now().toUtc().toIso8601String()),
   )
   ..get('/info.json', _infoHandler)
-  ..get('/sum/<a|[0-9]+>/<b|[0-9]+>', _sumHandler);
+  ..get('/sum/<a>/<b>/<c?>', _sumHandler); // 更新路径以包含可选的第三个参数
+
+Response _sumHandler(Request request, String a, String b, [String? c]) {
+  // 检查参数是否为数字
+  isNumeric(str) => int.tryParse(str) != null;
+  if (isNumeric(a) && isNumeric(b) && (c == null || isNumeric(c))) {
+    final aNum = int.parse(a);
+    final bNum = int.parse(b);
+    final cNum = c != null ? int.parse(c) : 0; // 如果存在第三个参数，就解析它
+    return Response.ok(
+      _jsonEncode({'a': aNum, 'b': bNum, 'c': cNum, 'sum': aNum + bNum + cNum}),
+      headers: {
+        ..._jsonHeaders,
+        'Cache-Control': 'public, max-age=604800, immutable',
+      },
+    );
+  } else {
+    // 如果参数不是数字，就将它们连接在一起
+    return Response.ok(
+      _jsonEncode({'a': a, 'b': b, 'c': c ?? '', 'sum': a + b + (c ?? '')}),
+      headers: {
+        ..._jsonHeaders,
+        'Cache-Control': 'public, max-age=604800, immutable',
+      },
+    );
+  }
+}
+
 
 Response _helloWorldHandler(Request request) => Response.ok('Hello, World!');
 
@@ -61,17 +88,7 @@ const _jsonHeaders = {
   'content-type': 'application/json',
 };
 
-Response _sumHandler(Request request, String a, String b) {
-  final aNum = int.parse(a);
-  final bNum = int.parse(b);
-  return Response.ok(
-    _jsonEncode({'a': aNum, 'b': bNum, 'sum': aNum + bNum}),
-    headers: {
-      ..._jsonHeaders,
-      'Cache-Control': 'public, max-age=604800, immutable',
-    },
-  );
-}
+
 
 final _watch = Stopwatch();
 
